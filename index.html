@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Case Simulator Enhanced (Sidebar)</title>
+    <title>Case Simulator Enhanced (Auth)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/components.css">
-    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/components.css"> <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
@@ -24,158 +23,73 @@
                 <li><a href="#inventory" class="nav-link" data-page="page-inventory"><i class="fas fa-boxes-stacked fa-fw"></i> Inventory</a></li>
                 <li><a href="#settings" class="nav-link" data-page="page-settings"><i class="fas fa-cog fa-fw"></i> Settings</a></li>
             </ul>
+            <div class="sidebar-auth">
+                <div id="auth-logged-out" class=""> <button id="loginButton" class="auth-button"><i class="fas fa-sign-in-alt fa-fw"></i> Login</button>
+                    <button id="signupButton" class="auth-button signup"><i class="fas fa-user-plus fa-fw"></i> Sign Up</button>
+                </div>
+                <div id="auth-logged-in" class="hidden"> <p class="user-greeting">Welcome, <span id="userEmailDisplay"></span>!</p>
+                     <button id="logoutButton" class="auth-button logout"><i class="fas fa-sign-out-alt fa-fw"></i> Logout</button>
+                </div>
+            </div>
             <div class="sidebar-footer">
                 <p class="case-counter">Cases: <span id="caseCounter">0</span></p>
-            </div>
+                 <p class="save-status">Status: <span id="saveStatusText">Using Local Storage</span></p> </div>
         </nav>
 
         <main class="main-content">
-
             <div id="page-case-opening" class="page-container active-page">
-                <h1 class="main-title">CASE OPENING</h1>
-
-                <div class="roller-section">
-                    <div class="roller-container">
-                        <div class="roller-track" id="rollerTrack"></div>
-                        <div class="center-marker"></div>
-                    </div>
-                </div>
-
-                <div id="modalBackdrop" class="modal-backdrop hidden">
-                    <div id="resultDisplay" class="result-card">
-                        <button id="closeResultButton" class="close-result-button" title="Close Display">&times;</button>
-                        <div class="result-content">
-                            <div class="result-image-container">
-                                <img id="resultImage" src="" alt="Result Item" class="result-image">
-                            </div>
-                            <div class="result-info">
-                                <h2 id="resultName" class="result-title"></h2>
-                                <div id="resultDetails" class="result-details"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="action-buttons-container">
-                    <button id="openCaseButton" class="action-button open-button">
-                        <i class="fas fa-box-open"></i> Open Case
-                    </button>
-                    <button id="quickOpenButton" class="action-button quick-open-button">
-                        <i class="fas fa-forward"></i> Quick Open
-                    </button>
-                    <button id="toggleOpenUntilButton" class="action-button open-until-button">
-                        <i class="fas fa-cogs"></i> Auto Open... </button>
-                </div>
-
-                <div id="openUntilPanel" class="open-until-panel hidden">
-                     <h3 class="panel-title">Auto Open Settings</h3>
-                    <details class="accordion-section" open>
-                        <summary class="accordion-header">Target Criteria</summary>
-                        <div class="accordion-content">
-                            <div class="settings-grid">
-                                <div class="setting-item">
-                                    <label for="targetItem" class="setting-label">Target Item:</label>
-                                    <select id="targetItem" class="setting-select">
-                                        <option value="any">Any Item</option>
-                                        <option value="any_knife">Any Special Item (Knife)</option>
-                                    </select>
-                                </div>
-                                <div class="setting-item">
-                                    <label for="targetWear" class="setting-label">Target Wear:</label>
-                                    <select id="targetWear" class="setting-select">
-                                        <option value="any">Any Wear</option>
-                                        <option value="Factory New">Factory New</option>
-                                        <option value="Minimal Wear">Minimal Wear</option>
-                                        <option value="Field-Tested">Field-Tested</option>
-                                        <option value="Well-Worn">Well-Worn</option>
-                                        <option value="Battle-Scarred">Battle-Scarred</option>
-                                    </select>
-                                </div>
-                                <div class="setting-item">
-                                    <label for="targetStatTrak" class="setting-label">StatTrak™:</label>
-                                    <select id="targetStatTrak" class="setting-select">
-                                        <option value="any">Any</option>
-                                        <option value="yes">Yes</option>
-                                        <option value="no">No</option>
-                                    </select>
-                                </div>
-                                <div class="setting-item">
-                                    <label for="targetSeed" class="setting-label">Paint Seed (Optional):</label>
-                                    <input type="number" id="targetSeed" class="setting-input" placeholder="e.g., 661" min="0" max="1000">
-                                </div>
-                            </div>
-                        </div>
-                    </details>
-                     <details class="accordion-section">
-                        <summary class="accordion-header">Automation Controls</summary>
-                        <div class="accordion-content">
-                             <div class="setting-item setting-item-slider">
-                                <label for="openSpeed" class="setting-label">Open Speed (Cases/sec): <span id="speedValue">10</span></label>
-                                <input type="range" id="openSpeed" class="setting-slider" min="1" max="100" value="10">
-                                <span class="setting-note">(Higher speeds might impact performance)</span>
-                            </div>
-                            <div class="open-until-controls">
-                                <button id="startOpenUntilButton" class="start-button">
-                                    <i class="fas fa-play"></i> Start Opening
-                                </button>
-                                <button id="stopOpenUntilButton" class="stop-button hidden">
-                                    <i class="fas fa-stop"></i> Stop Opening
-                                </button>
-                            </div>
-                            <div id="openUntilStatus" class="open-until-status">
-                                Status: Idle
-                            </div>
-                        </div>
-                    </details>
-                </div>
-            </div> <div id="page-inventory" class="page-container">
+                 <h1 class="main-title">CASE OPENING</h1>
+                 <div class="roller-section"> <div class="roller-container"> <div class="roller-track" id="rollerTrack"></div> <div class="center-marker"></div> </div> </div>
+                 <div id="modalBackdrop" class="modal-backdrop hidden"> <div id="resultDisplay" class="result-card"> <button id="closeResultButton" class="close-result-button" title="Close Display">&times;</button> <div class="result-content"> <div class="result-image-container"> <img id="resultImage" src="" alt="Result Item" class="result-image"> </div> <div class="result-info"> <h2 id="resultName" class="result-title"></h2> <div id="resultDetails" class="result-details"></div> </div> </div> </div> </div>
+                 <div class="action-buttons-container"> <button id="openCaseButton" class="action-button open-button"> <i class="fas fa-box-open"></i> Open Case </button> <button id="quickOpenButton" class="action-button quick-open-button"> <i class="fas fa-forward"></i> Quick Open </button> <button id="toggleOpenUntilButton" class="action-button open-until-button"> <i class="fas fa-cogs"></i> Auto Open... </button> </div>
+                 <div id="openUntilPanel" class="open-until-panel hidden"> <h3 class="panel-title">Auto Open Settings</h3> <details class="accordion-section" open> <summary class="accordion-header">Target Criteria</summary> <div class="accordion-content"> <div class="settings-grid"> <div class="setting-item"> <label for="targetItem" class="setting-label">Target Item:</label> <select id="targetItem" class="setting-select"> <option value="any">Any Item</option> <option value="any_knife">Any Special Item (Knife)</option> </select> </div> <div class="setting-item"> <label for="targetWear" class="setting-label">Target Wear:</label> <select id="targetWear" class="setting-select"> <option value="any">Any Wear</option> <option value="Factory New">Factory New</option> <option value="Minimal Wear">Minimal Wear</option> <option value="Field-Tested">Field-Tested</option> <option value="Well-Worn">Well-Worn</option> <option value="Battle-Scarred">Battle-Scarred</option> </select> </div> <div class="setting-item"> <label for="targetStatTrak" class="setting-label">StatTrak™:</label> <select id="targetStatTrak" class="setting-select"> <option value="any">Any</option> <option value="yes">Yes</option> <option value="no">No</option> </select> </div> <div class="setting-item"> <label for="targetSeed" class="setting-label">Paint Seed (Optional):</label> <input type="number" id="targetSeed" class="setting-input" placeholder="e.g., 661" min="0" max="1000"> </div> </div> </div> </details> <details class="accordion-section"> <summary class="accordion-header">Automation Controls</summary> <div class="accordion-content"> <div class="setting-item setting-item-slider"> <label for="openSpeed" class="setting-label">Open Speed (Cases/sec): <span id="speedValue">10</span></label> <input type="range" id="openSpeed" class="setting-slider" min="1" max="100" value="10"> <span class="setting-note">(Higher speeds might impact performance)</span> </div> <div class="open-until-controls"> <button id="startOpenUntilButton" class="start-button"> <i class="fas fa-play"></i> Start Opening </button> <button id="stopOpenUntilButton" class="stop-button hidden"> <i class="fas fa-stop"></i> Stop Opening </button> </div> <div id="openUntilStatus" class="open-until-status"> Status: Idle </div> </div> </details> </div>
+            </div>
+            <div id="page-inventory" class="page-container">
                  <h1 class="main-title">INVENTORY</h1>
-                 <section id="inventorySection" class="inventory-section">
-                    <div class="inventory-controls">
-                        <div class="filter-group">
-                            <label for="rarityFilter" class="filter-label">Rarity:</label>
-                            <select id="rarityFilter" class="filter-select">
-                                <option value="all">All</option>
-                                <option value="Gold">Gold</option>
-                                <option value="Covert">Covert</option>
-                                <option value="Classified">Classified</option>
-                                <option value="Restricted">Restricted</option>
-                                <option value="Mil-Spec">Mil-Spec</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label for="sortOrder" class="filter-label">Sort:</label>
-                            <select id="sortOrder" class="filter-select">
-                                <option value="newest">Newest</option>
-                                <option value="rarity_desc">Rarity ↓</option>
-                                <option value="rarity_asc">Rarity ↑</option>
-                            </select>
-                        </div>
-                        <button id="clearInventoryButton" class="clear-inventory-button">
-                            <i class="fas fa-trash-alt"></i> Clear Inventory
-                        </button>
-                    </div>
-
-                    <div id="inventoryGrid" class="inventory-grid"></div>
-                    <p id="emptyInventoryMessage" class="empty-inventory-message hidden">Inventory empty.</p>
-                </section>
-            </div> <div id="page-settings" class="page-container">
+                 <section id="inventorySection" class="inventory-section"> <div class="inventory-controls"> <div class="filter-group"> <label for="rarityFilter" class="filter-label">Rarity:</label> <select id="rarityFilter" class="filter-select"> <option value="all">All</option> <option value="Gold">Gold</option> <option value="Covert">Covert</option> <option value="Classified">Classified</option> <option value="Restricted">Restricted</option> <option value="Mil-Spec">Mil-Spec</option> </select> </div> <div class="filter-group"> <label for="sortOrder" class="filter-label">Sort:</label> <select id="sortOrder" class="filter-select"> <option value="newest">Newest</option> <option value="rarity_desc">Rarity ↓</option> <option value="rarity_asc">Rarity ↑</option> </select> </div> <button id="clearInventoryButton" class="clear-inventory-button"> <i class="fas fa-trash-alt"></i> Clear Inventory </button> </div> <div id="inventoryGrid" class="inventory-grid"></div> <p id="emptyInventoryMessage" class="empty-inventory-message hidden">Inventory empty.</p> </section>
+            </div>
+            <div id="page-settings" class="page-container">
                 <h1 class="main-title">SETTINGS</h1>
-                <div class="settings-content">
-                    <p>General application settings will go here.</p>
-                    <div class="setting-item">
-                        <label for="someSetting" class="setting-label">Example Setting:</label>
-                        <input type="text" id="someSetting" class="setting-input" placeholder="Enter value">
-                    </div>
-                     <div class="setting-item">
-                        <label for="themeSelect" class="setting-label">Theme:</label>
-                        <select id="themeSelect" class="setting-select">
-                            <option value="dark">Dark (Default)</option>
-                            <option value="light" disabled>Light (Coming Soon)</option>
-                        </select>
-                    </div>
-                    <p class="setting-note">More settings like simulation speed adjustments, sound options, etc., could be added.</p>
+                <div class="settings-content"> <p>General application settings will go here.</p> <div class="setting-item"> <label for="someSetting" class="setting-label">Example Setting:</label> <input type="text" id="someSetting" class="setting-input" placeholder="Enter value"> </div> <div class="setting-item"> <label for="themeSelect" class="setting-label">Theme:</label> <select id="themeSelect" class="setting-select"> <option value="dark">Dark (Default)</option> <option value="light" disabled>Light (Coming Soon)</option> </select> </div> <p class="setting-note">More settings could be added.</p> </div>
+            </div>
+        </main> </div> <div id="authModalBackdrop" class="auth-modal-backdrop hidden">
+        <div id="loginModal" class="auth-modal hidden">
+            <button class="close-auth-modal" data-modal-id="loginModal">&times;</button>
+            <h2>Login</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">Email:</label>
+                    <input type="email" id="loginEmail" required>
                 </div>
-            </div> </main> </div> <script type="module" src="js/main.js"></script>
+                <div class="form-group">
+                    <label for="loginPassword">Password:</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <p id="loginError" class="auth-error hidden"></p>
+                <button type="submit" class="auth-submit-button">Login</button>
+            </form>
+        </div>
+
+        <div id="signupModal" class="auth-modal hidden">
+             <button class="close-auth-modal" data-modal-id="signupModal">&times;</button>
+            <h2>Sign Up</h2>
+            <form id="signupForm">
+                <div class="form-group">
+                    <label for="signupEmail">Email:</label>
+                    <input type="email" id="signupEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupPassword">Password:</label>
+                    <input type="password" id="signupPassword" required minlength="6">
+                </div>
+                 <div class="form-group">
+                    <label for="signupConfirmPassword">Confirm Password:</label>
+                    <input type="password" id="signupConfirmPassword" required minlength="6">
+                </div>
+                <p id="signupError" class="auth-error hidden"></p>
+                <button type="submit" class="auth-submit-button">Sign Up</button>
+            </form>
+        </div>
+    </div> <script type="module" src="js/main.js"></script>
 </body>
 </html>
