@@ -118,6 +118,10 @@ export function getImageUrl(item) {
  */
 export function safeLocalStorage(method, key, value) {
     try {
+        if (typeof localStorage === 'undefined') {
+            console.warn("localStorage is not available.");
+            return method === 'getItem' ? null : undefined;
+        }
         if (method === 'setItem') {
             localStorage.setItem(key, value);
         } else if (method === 'getItem') {

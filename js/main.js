@@ -1,24 +1,25 @@
 // --- Main Entry Point ---
 import * as dom from './dom.js';
-import { state, initializeAuthState } from './state.js'; // Import state initializer
+import { state, loadSettings, saveSettings, setSetting, incrementInventoryPage, decrementInventoryPage, setInventoryPage } from './state.js';
 // Import specific functions from dataManager
-import { loadData, clearInventoryAndSave } from './dataManager.js';
+import { loadData, clearInventoryAndSave, resetAllData } from './dataManager.js';
 import { openCase, generateRollerItems } from './caseOpener.js';
-import { runAnimation, handleQuickOpen } from './animation.js';
+import { runMultiOpen, handleQuickOpen } from './animation.js';
 import { startOpenUntil, stopOpenUntil } from './openUntil.js';
 // Import specific UI functions
 import {
     showPage,
     populateRoller,
-    hideResultDisplay,
+    hideResultDisplay, // Now clears the result list
     renderInventoryGrid,
     populateTargetItemSelect,
     updateAccordionARIA,
-    updateAuthUI, // Import auth UI updater
-    updateSaveStatus // Import save status updater
+    updateSaveStatus,
+    updateCounterDisplay,
+    applySettingsToUI,
+    setupMultiRollers,
+    hideItemPopup // Import function to hide item popup
 } from './ui.js';
-// Import auth functions
-import { setupAuthEventListeners } from './auth.js';
 
 // --- Event Listeners ---
 
@@ -33,25 +34,24 @@ function setupEventListeners() {
         });
     });
 
-    // --- Auth (Setup delegated to auth.js) ---
-    setupAuthEventListeners();
-
     // --- Case Opening Page ---
     dom.openCaseButton?.addEventListener('click', () => {
-        if (!state.isOpening && !state.isOpeningUntil) runAnimation(openCase());
-    });
-    dom.quickOpenButton?.addEventListener('click', () => {
-        if (!state.isOpening && !state.isOpeningUntil) handleQuickOpen();
-    });
-    dom.modalBackdrop?.addEventListener('click', (event) => {
-        if (event.target === dom.modalBackdrop) hideResultDisplay();
-    });
-    dom.closeResultButton?.addEventListener('click', hideResultDisplay);
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && !dom.modalBackdrop?.classList.contains('hidden')) {
-            hideResultDisplay();
+        if (!state.isOpening && !state.isOpeningUntil) {
+             const count = parseInt(dom.multiOpenCountInput?.value || '1', 10);
+             runMultiOpen(count, openCase);
+        } else {
+            console.log("Open Case button blocked: Already opening.");
         }
     });
+    dom.quickOpenButton?.addEventListener('click', () => {
+        if (!state.isOpening && !state.isOpeningUntil) {
+             const count = parseInt(dom.multiOpenCountInput?.value || '1', 10);
+             handleQuickOpen(count, openCase);
+        } else {
+             console.log("Quick Open button blocked: Already opening.");
+        }
+    });
+    // Removed listener for clearResultAreaButton
 
     // --- Open Until Panel ---
     dom.toggleOpenUntilButton?.addEventListener('click', () => {
@@ -70,43 +70,93 @@ function setupEventListeners() {
     });
 
     // --- Inventory Page ---
-    dom.rarityFilter?.addEventListener('change', renderInventoryGrid); // Re-render only
-    dom.sortOrder?.addEventListener('change', renderInventoryGrid); // Re-render only
-    // *** MODIFIED: Use clearInventoryAndSave from dataManager ***
+    const inventoryFilters = [
+        dom.filterNameInput, dom.rarityFilter, dom.wearFilter,
+        dom.statTrakFilter, dom.sortOrder
+    ];
+    inventoryFilters.forEach(filter => {
+        if (filter) {
+            const eventType = (filter.type === 'text') ? 'input' : 'change';
+            // Reset to page 1 when filters change
+            filter.addEventListener(eventType, () => {
+                setInventoryPage(1); // Go back to first page on filter change
+                renderInventoryGrid();
+            });
+        }
+    });
     dom.clearInventoryButton?.addEventListener('click', clearInventoryAndSave);
 
+    // --- Inventory Pagination ---
+    dom.prevPageButton?.addEventListener('click', () => {
+        decrementInventoryPage();
+        renderInventoryGrid();
+    });
+    dom.nextPageButton?.addEventListener('click', () => {
+        incrementInventoryPage();
+        renderInventoryGrid();
+    });
+
+     // --- Item Popup Modal ---
+     dom.closeItemPopupButton?.addEventListener('click', hideItemPopup);
+     dom.itemPopupBackdrop?.addEventListener('click', (event) => {
+        // Close if backdrop itself is clicked, not the card inside
+        if (event.target === dom.itemPopupBackdrop) {
+            hideItemPopup();
+        }
+     });
+     // Close item popup on Escape key
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !dom.itemPopupBackdrop?.classList.contains('hidden')) {
+            hideItemPopup();
+        }
+    });
+
+
     // --- Settings Page ---
-    // Add listeners if needed
+    dom.settingAnimationToggle?.addEventListener('change', (event) => {
+        setSetting('playAnimation', event.target.checked);
+        saveSettings();
+    });
+     dom.settingDefaultOpenSpeed?.addEventListener('input', (event) => {
+         const speed = parseInt(event.target.value, 10);
+         if (dom.settingSpeedValueSpan) dom.settingSpeedValueSpan.textContent = speed;
+         if (dom.openSpeedSlider) dom.openSpeedSlider.value = speed;
+         if (dom.speedValueSpan) dom.speedValueSpan.textContent = speed;
+    });
+     dom.settingDefaultOpenSpeed?.addEventListener('change', (event) => {
+         const speed = parseInt(event.target.value, 10);
+         setSetting('defaultOpenSpeed', speed);
+         saveSettings();
+     });
+    dom.resetAllDataButton?.addEventListener('click', resetAllData);
 }
 
 // --- Initialization ---
-async function initializeApp() {
-    console.log("Initializing Case Simulator (Auth)...");
+function initializeApp() {
+    console.log("Initializing Case Simulator (Layout v2)...");
 
-    // 1. Initialize authentication state (check localStorage for token)
-    initializeAuthState();
-    updateAuthUI(); // Update UI based on initial auth state
+    // 1. Load Settings first
+    loadSettings();
 
-    // 2. Load initial data (will use API if logged in, localStorage otherwise)
-    await loadData(); // loadData now handles UI updates (renderInventoryGrid, updateCounterDisplay)
+    // 2. Load initial data from localStorage
+    loadData(); // Handles UI updates for counter and inventory grid
 
-    // 3. Initial UI setup (that doesn't depend on loaded data)
-    populateRoller(generateRollerItems(20));
+    // 3. Apply loaded settings to the UI
+    applySettingsToUI();
+
+    // 4. Initial UI setup
+    setupMultiRollers(1); // Setup initial single roller structure
+    populateRoller(generateRollerItems(20), 0); // Populate the initial roller
     populateTargetItemSelect();
-    if (dom.speedValueSpan && dom.openSpeedSlider) {
-        dom.speedValueSpan.textContent = dom.openSpeedSlider.value;
-    }
-    hideResultDisplay(); // Ensure result modal is hidden
-    if (dom.emptyInventoryMessage) { // Check initial inventory message state
-        dom.emptyInventoryMessage.classList.toggle('hidden', state.inventory.length > 0);
-    }
+    hideResultDisplay(); // Clear result list initially
+    hideItemPopup(); // Ensure item popup is hidden
 
-    // 4. Set initial page view and ARIA states
+    // 5. Set initial page view and ARIA states
     showPage('page-case-opening');
     updateAccordionARIA();
-    updateSaveStatus(); // Show initial save status
+    updateSaveStatus();
 
-    // 5. Setup all event listeners
+    // 6. Setup all event listeners
     setupEventListeners();
 
     console.log("Initialization complete.");

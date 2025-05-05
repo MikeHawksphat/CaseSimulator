@@ -51,11 +51,12 @@ export const FLOAT_RANGES = [
 export const STATTRAK_CHANCE = 0.10; // 10% chance
 
 // --- Configuration ---
-export const ROLLER_ITEM_COUNT = 80; // Number of items in the roller animation visual pool
+export const ROLLER_ITEM_COUNT = 80; // Number of items in the visual pool for roller animation
 export const ROLLER_ANIMATION_DURATION = 6000; // ms
-export const INVENTORY_STORAGE_KEY = 'csgoCaseSimInventory_v3'; // Updated key if structure changes
-export const CASE_COUNT_STORAGE_KEY = 'csgoCaseSimTotalCount_v2'; // Updated key
-export const MIN_OPEN_UNTIL_INTERVAL = 10; // Minimum interval in ms for Open Until (prevents browser freeze)
+export const INVENTORY_STORAGE_KEY = 'csgoCaseSimInventory_v4'; // Increment version if structure changes
+export const CASE_COUNT_STORAGE_KEY = 'csgoCaseSimTotalCount_v3'; // Increment version
+export const SETTINGS_STORAGE_KEY = 'csgoCaseSimSettings_v1'; // Key for settings
+export const MIN_OPEN_UNTIL_INTERVAL = 10; // Minimum interval in ms for Open Until
 export const ROLLER_ITEM_WIDTH = 150; // Must match the CSS width of .roller-item
 export const WINNING_ITEM_OFFSET_INDEX = 10; // How many items from the end the winning item visually lands
 
